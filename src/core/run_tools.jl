@@ -49,6 +49,13 @@ function load_settings(settings_path::AbstractString)
         mysetup_ng = Dict{String,Any}()
     end 
 
+    ethylene_settings_path = joinpath(settings_path, "Chemical_settings.yml") #Settings YAML file path for Chemical model
+    if isfile(ethylene_settings_path)
+        mysetup_ethylene = YAML.load(open(ethylene_settings_path)) # mysetup dictionary stores Chemical supply chain-specific parameters
+    else
+        mysetup_ethylene = Dict{String,Any}()
+    end 
+
     global_settings_path = joinpath(settings_path, "global_model_settings.yml") # Global settings for inte
     if isfile(global_settings_path)
         mysetup_global = YAML.load(open(global_settings_path)) # mysetup dictionary stores global settings
@@ -57,7 +64,7 @@ function load_settings(settings_path::AbstractString)
     end
 
     mysetup = Dict{String,Any}()
-    merge!(mysetup, mysetup_genx, mysetup_hsc, mysetup_csc, mysetup_lf, mysetup_besc, mysetup_ng, mysetup_global) #Merge dictionary - value of common keys will be overwritten by value in global_model_settings
+    merge!(mysetup, mysetup_genx, mysetup_hsc, mysetup_csc, mysetup_lf, mysetup_besc, mysetup_ng, mysetup_ethylene, mysetup_global) #Merge dictionary - value of common keys will be overwritten by value in global_model_settings
     mysetup = configure_settings(mysetup)
 
     return mysetup
@@ -92,6 +99,10 @@ function load_all_inputs(mysetup::Dict{String, Any}, inputs_path::AbstractString
     ### Load BESC inputs if modeling the bioenergy  supply chain
     if mysetup["ModelNGSC"] == 1
         myinputs = load_ng_inputs(myinputs, mysetup, inputs_path)
+    end
+    ## Load Ethylene inputs if modeling the ethylene production
+    if mysetup["ModelChemicalProduction"] == 1
+        myinputs = load_ethylene_inputs(myinputs, mysetup, inputs_path)	    
     end
 
     return myinputs
@@ -139,6 +150,10 @@ function setup_TDR(inputs_path::AbstractString, settings_path::AbstractString, m
         if mysetup["ModelNGSC"] == 1
             print_and_log("Natural gas supply chain TDR not implemented.")
         end
+
+        if mysetup["ModelChemicalProduction"] == 1
+            print_and_log("Chemical Production TDR not implemented.")
+        end
     end
 
     TDR_path = joinpath(inputs_path, mysetup["TimeDomainReductionFolder"])
@@ -182,6 +197,11 @@ function write_all_outputs(EP::Model, mysetup::Dict{String, Any}, myinputs::Dict
     ### Write natural gas supply chain outputs
     if mysetup["ModelNGSC"] == 1
         write_ng_outputs(EP, adjusted_outpath, mysetup, myinputs)
+    end
+    
+    ### Ethylene outputs
+    if mysetup["ModelChemicalProduction"] == 1
+        write_ethylene_outputs(EP, adjusted_outpath, mysetup, myinputs)
     end
 
     return adjusted_outpath

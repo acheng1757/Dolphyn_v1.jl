@@ -28,8 +28,8 @@ function write_co2_emission_balance_zone_global_conv_fuel(path::AbstractString, 
 	dfCO2Balance = Array{Any}
 	rowoffset=3
 	for z in 1:Z
-	   	dfTemp1 = Array{Any}(nothing, T+rowoffset, 20)
-	   	dfTemp1[1,1:size(dfTemp1,2)] = ["Power Emissions", "H2 Emissions", "DAC Emissions", "DAC Capture",  "CO2 Pipeline Loss", "Biorefinery Emissions", "Bioresource Emissions",  "Biomass Capture", "Synfuel Plant Emissions","Synfuel Byproducts Emissions","Syn Gasoline","Syn Jetfuel","Syn Diesel","Bio Gasoline", "Bio Jetfuel", "Bio Diesel", "Syn NG Plant Emissions", "Synthetic NG", "Bio NG", "Conventional NG"]
+	   	dfTemp1 = Array{Any}(nothing, T+rowoffset, 21)
+	   	dfTemp1[1,1:size(dfTemp1,2)] = ["Power Emissions", "H2 Emissions", "DAC Emissions", "DAC Capture",  "CO2 Pipeline Loss", "Biorefinery Emissions", "Bioresource Emissions",  "Biomass Capture", "Synfuel Plant Emissions","Synfuel Byproducts Emissions","Syn Gasoline","Syn Jetfuel","Syn Diesel","Bio Gasoline", "Bio Jetfuel", "Bio Diesel", "Syn NG Plant Emissions", "Synthetic NG", "Bio NG", "Conventional NG","Ethylene Production"]
 	   	dfTemp1[2,1:size(dfTemp1,2)] = repeat([z],size(dfTemp1,2))
 	   	for t in 1:T
 			dfTemp1[t+rowoffset,1] = value(EP[:eEmissionsByZone][z,t])
@@ -91,6 +91,11 @@ function write_co2_emission_balance_zone_global_conv_fuel(path::AbstractString, 
 			dfTemp1[t+rowoffset,18] = 0
 			dfTemp1[t+rowoffset,19] = 0
 			dfTemp1[t+rowoffset,20] = 0
+			dfTemp1[t+rowoffset,21] = 0
+
+			if setup["ModelEthyleneProduction"] == 1
+				dfTemp1[t+rowoffset,21] = value(EP[:eEthylene_Production_CO2_Emissions_By_Zone][z,t])
+			end
 
 			if setup["ModelNGSC"] == 1
 
@@ -167,6 +172,11 @@ function write_co2_emission_balance_zone_global_conv_fuel(path::AbstractString, 
 		dfTemp1[rowoffset,18] = 0
 		dfTemp1[rowoffset,19] = 0
 		dfTemp1[rowoffset,20] = 0
+		dfTemp1[rowoffset,21] = 0
+
+		if setup["ModelEthyleneProduction"] == 1
+			dfTemp1[t+rowoffset,21] = sum(inputs["omega"][t] * value.(EP[:eEthylene_Production_CO2_Emissions_By_Zone][z,t]) for t in 1:T)
+		end
 
 		if setup["ModelNGSC"] == 1
 				

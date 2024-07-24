@@ -28,9 +28,9 @@ function write_co2_storage_balance(path::AbstractString, sep::AbstractString, in
 	dfCO2StorBalance = Array{Any}
 	rowoffset=3
 	for z in 1:Z
-	   	dfTemp1 = Array{Any}(nothing, T+rowoffset, 11)
+	   	dfTemp1 = Array{Any}(nothing, T+rowoffset, 12)
 	   	dfTemp1[1,1:size(dfTemp1,2)] = [ "Power CCS", "H2 CCS", "DAC Capture", "DAC Fuel CCS", "Biorefinery Capture","Synfuel Plant Capture", "Synfuel Plant Consumption", "Syn NG Plant Capture", "Syn NG Plant Consumption", "CO2 Pipeline Import",
-	           "CO2 Storage"]
+	           "CO2 Storage","Ethylene Production"]
 	   	dfTemp1[2,1:size(dfTemp1,2)] = repeat([z],size(dfTemp1,2))
 	   	for t in 1:T
 
@@ -62,10 +62,15 @@ function write_co2_storage_balance(path::AbstractString, sep::AbstractString, in
 
 			dfTemp1[t+rowoffset,8] = 0
 			dfTemp1[t+rowoffset,9] = 0
+			dfTemp1[t+rowoffset,12] = 0
 
 			if setup["ModelNGSC"] == 1 && setup["ModelSyntheticNG"] == 1
 				dfTemp1[t+rowoffset,8] = value(EP[:eSyn_NG_CO2_Capture_Per_Zone_Per_Time][z,t])
 				dfTemp1[t+rowoffset,9] = - value(EP[:eSyn_NG_CO2_Cons_Per_Zone_Per_Time][z,t])
+			end
+
+			if setup["ModelEthyleneProduction"] == 1
+				dfTemp1[t+rowoffset,12] = value(EP[:eEthylene_CO2_Capture_Per_Zone_Per_Time][z,t])# tempEthylene_Production_Capture = tempEthylene_Production_Capture + sum(inputs["omega"].* (value.(EP[:eEthylene_CO2_Capture_Per_Zone_Per_Time])[z,:]))	
 			end
 
 			dfTemp1[t+rowoffset,10] = 0

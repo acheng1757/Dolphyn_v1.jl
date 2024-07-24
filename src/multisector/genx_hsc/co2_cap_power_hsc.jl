@@ -153,6 +153,15 @@ function co2_cap_power_hsc(EP::Model, inputs::Dict, setup::Dict)
         end 
 
 
+        # For Ethylene Production
+        if setup["ModelEthyleneProduction"] == 1
+            @expression(EP, eEmissionsConstraintLHSEthylene[cap=1:inputs["NCO2Cap"]],          
+            sum(inputs["omega"][t] * EP[:eEthylene_Production_CO2_Emissions_By_Zone][z,t] for z=findall(x->x==1, inputs["dfCO2CapZones"][:,cap]), t=1:T))
+           #  sum(inputs["omega"][t] * EP[:eEthylene_CO2_Emissions_By_Zone][z,t] for z=findall(x->x==1, inputs["dfCO2CapZones"][:,cap]), t=1:T)
+            eEmissionsConstraintLHS += eEmissionsConstraintLHSEthylene
+        end
+
+
         if setup["ModelNGSC"] == 1
             @expression(EP, eEmissionsConstraintLHSCNG[cap=1:inputs["NCO2Cap"]],
                 sum(inputs["omega"][t] * EP[:eConv_NG_CO2_Emissions][z,t] for z=findall(x->x==1, inputs["dfCO2CapZones"][:,cap]), t=1:T))

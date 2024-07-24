@@ -110,6 +110,10 @@ function generate_model(setup::Dict,inputs::Dict,OPTIMIZER::MOI.OptimizerWithAtt
     # Expression for "baseline" H2 balance constraint
     @expression(EP, eH2Balance[t=1:T, z=1:Z], 0)
 
+    # Initialize Ethylene Balance Expression
+   #  @expression(EP, eEthyleneBalance[t=1:T, z=1:Z], 0)
+
+    
     # Initialize Liquid Hydrogen Balance Expression
     if setup["ModelH2Liquid"]==1
         # Expression for "baseline" H2 liquid balance constraint
@@ -125,7 +129,13 @@ function generate_model(setup::Dict,inputs::Dict,OPTIMIZER::MOI.OptimizerWithAtt
         # Initialize NG Balance Expression
 	    @expression(EP, eNGBalance[t=1:T, z=1:Z], 0)
     end
-
+    
+    if setup["ModelChemicalProduction"] == 1
+        # Initialize Ethylene Balance Expression
+	    @expression(EP, eEthyleneBalance[t=1:T, z=1:Z], 0)
+    end
+   
+   
 
     # Initialize Objective Function Expression
     @expression(EP, eObj, 0)
@@ -402,6 +412,34 @@ function generate_model(setup::Dict,inputs::Dict,OPTIMIZER::MOI.OptimizerWithAtt
         #EP[:eAdditionalDemandByZone] += EP[:ePowerBalanceSynNGRes]
     end
 
+###### START OF ETHYLENE INFRASTRUCTURE MODEL ######
+if setup["ModelChemicalProduction"] == 1
+
+    # Initialize 
+    @expression(EP, eConv_Ethylene_Balance[t=1:T, z=1:Z], 0) # Have to check
+
+    println("Generating Ethylene Supply Chain model")
+
+    # Net Power consumption by NGSC supply chain by z and timestep - used in emissions constraints
+    @expression(EP, eEthyleneNetpowerConsumptionByAll[t=1:T,z=1:Z], 0)  
+    
+    if setup["ModelEthylenePurchase"] == 1
+        EP = conventional_ethylene_demand(EP, inputs, setup) 
+    end
+
+    if setup["ModelEthyleneProduction"] == 1
+        EP = ethylene_production_outputs(EP, inputs, setup)
+        EP = ethylene_production_investment(EP, inputs, setup)
+        EP = ethylene_production_resources(EP, inputs, setup)
+    end
+
+    
+    EP = ethylene_emissions(EP, inputs, setup)
+    
+    #EP[:eAdditionalDemandByZone] += EP[:ePowerBalanceSynNGRes]
+end
+
+
 
     ###### START OF BIOENERGY INFRASTRUCTURE MODEL ######
     if setup["ModelBESC"] == 1
@@ -550,6 +588,18 @@ function generate_model(setup::Dict,inputs::Dict,OPTIMIZER::MOI.OptimizerWithAtt
          # Conventional Fuels Share Policy
          if setup["Conventional_NG_Share_Requirement"] == 1
             EP = conventional_ng_share(EP, inputs, setup)
+        end
+    end
+
+        #########################################################################################
+    ### Ethylene Balance constraints
+
+    if setup["ModelChemicalProduction"] == 1
+        @constraint(EP, cEthylene_Balance_T_Z[t=1:T,z=1:Z], EP[:eEthyleneBalance][t,z] == inputs["Ethylene_Demand"][t,z])
+
+        # Conventional Ethylene Purchase Share Policy
+        if setup["Conventional_Ethylene_Purchase_Share_Requirement"] == 1
+            EP = conventional_ethylene_purchase_share(EP, inputs, setup)
         end
     end
 

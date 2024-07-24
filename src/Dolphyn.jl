@@ -26,6 +26,7 @@ export setup_TDR
 export configure_solver
 export load_inputs
 export load_h2_inputs
+export load_ethylene_inputs
 export load_co2_inputs
 export load_liquid_fuels_inputs
 export load_bio_inputs
@@ -40,6 +41,7 @@ export write_CSC_outputs
 export write_liquid_fuels_outputs
 export write_bio_outputs
 export write_ng_outputs
+export write_ethylene_outputs
 export cluster_inputs
 export mga
 export h2_inherit_clusters
@@ -168,6 +170,9 @@ include_from_dir(joinpath(@__DIR__,"BESC"), ".jl")
 
 # Load all .jl files from the NGSC directory
 include_from_dir(joinpath(@__DIR__,"NGSC"), ".jl")
+
+# Load all .jl files from the Ethylene directory
+include_from_dir(joinpath(@__DIR__,"Ethylene"), ".jl")
 
 # Load all .jl files from the core directory
 include_from_dir(joinpath(@__DIR__,"core"), ".jl")

@@ -35,7 +35,7 @@ function write_h2_balance(path::AbstractString, sep::AbstractString, inputs::Dic
 	dfH2Balance = Array{Any}
 	rowoffset=3
 	for z in 1:Z
-	   	dfTemp1 = Array{Any}(nothing, T+rowoffset, 17)
+	   	dfTemp1 = Array{Any}(nothing, T+rowoffset, 18)
 	   	dfTemp1[1,1:size(dfTemp1,2)] = ["Generation", #1
 	           "Flexible_Demand_Defer", #2
 			   "Flexible_Demand_Satisfy", # 3
@@ -52,7 +52,8 @@ function write_h2_balance(path::AbstractString, sep::AbstractString, inputs::Dic
 			   "Evaporation",# 14 
 			   "Biohydrogen",#15 
 			   "Synfuel Consumption", #16
-			   "SynNG Consumption"] # 17] 
+			   "SynNG Consumption",
+			   "Production from Ethylene Process"] # 17] 
 
 	   	dfTemp1[2,1:size(dfTemp1,2)] = repeat([z],size(dfTemp1,2))
 	   	for t in 1:T
@@ -127,6 +128,12 @@ function write_h2_balance(path::AbstractString, sep::AbstractString, inputs::Dic
 
 			if setup["ModelNGSC"] == 1 && setup["ModelSyntheticNG"] == 1
 				dfTemp1[t+rowoffset,17] = - value.(EP[:eSyn_NG_H2_Cons][t,z])
+			end
+
+			dfTemp1[t+rowoffset,18] = 0
+			
+			if setup["ModelEthyleneProduction"] == 1 
+				dfTemp1[t+rowoffset,18] = value.(EP[:eEthylene_H2_Prod][t,z])
 			end
 
 	   	end
