@@ -105,7 +105,7 @@ function write_co2_emission_balance_zone_global_conv_fuel(path::AbstractString, 
 				end
 
 				if setup["ModelBESC"] == 1 && setup["Bio_NG_On"] == 1
-					dfTemp1[t+rowoffset,29] = value(EP[:eBio_NG_CO2_Emissions_By_Zone][z,t])
+					dfTemp1[t+rowoffset,29] = value(EP[:eBio_NG_CO2_Emissions_By_Zone][z,t]) # changed to 19 from 29?
 				end
 
 				dfTemp1[t+rowoffset,20] = value(EP[:eConv_NG_CO2_Emissions][z,t])
